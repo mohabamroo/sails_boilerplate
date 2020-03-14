@@ -3550,7 +3550,7 @@ knex@0.12.7:
     uuid "^3.0.0"
     v8flags "^2.0.2"
 
-knex@^0.19.4:
+knex@^0.19.5:
   version "0.19.5"
   resolved "https://registry.yarnpkg.com/knex/-/knex-0.19.5.tgz#3597ebecf88a5942f18c3e6d91af53bda59eeb5d"
   integrity sha512-Hy258avCVircQq+oj3WBqPzl8jDIte438Qlq+8pt1i/TyLYVA4zPh2uKc7Bx0t+qOpa6D42HJ2jjtl2vagzilw==
