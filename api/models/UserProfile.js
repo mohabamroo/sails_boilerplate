@@ -39,6 +39,16 @@ module.exports = {
       type: 'string',
       isIn: CONSTANTS.genders
     },
+    countryCode: {
+      type: 'string',
+      allowNull: true,
+      columnName: 'country_code'
+    },
+    profileImg: {
+      type: 'string',
+      allowNull: true,
+      columnName: 'profile_img'
+    },
 
     //  ╔═╗╔╦╗╔╗ ╔═╗╔╦╗╔═╗
     //  ║╣ ║║║╠╩╗║╣  ║║╚═╗
@@ -53,6 +63,15 @@ module.exports = {
       unique: true,
       columnName: 'auth_id'
     }
+  },
+  customToJSON: function () {
+    this.name = this.firstName + ' ' + (this.lastName || '');
+    if (this.birthDate) {
+      this.age = Math.abs(
+        moment(this.birthDate).diff(moment(), 'years')
+      );
+    }
+    return _.omit(this, []);
   },
   tableName: 'user_profiles'
 };

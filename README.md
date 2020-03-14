@@ -1,4 +1,4 @@
-# lab-nco-sails-backend
+# Sails Boilerplate
 
 a [Sails v1](https://sailsjs.com) application
 
@@ -11,12 +11,21 @@ a [Sails v1](https://sailsjs.com) application
 + [Community support options](https://sailsjs.com/support)
 + [Professional / enterprise options](https://sailsjs.com/enterprise)
 
+## Models
+- Auth (email, password & accessLevel)
+- Userprofile (personal data + auth_id)
+
+## Controllers
+- AuthController
+- PublicController
+- CRUDController
 
 ### Version info
 
 This app was originally generated on Sun Sep 22 2019 11:47:44 GMT+0200 (Egypt Standard Time) using Sails v1.2.3.
 
 <!-- Internally, Sails used [`sails-generate@1.16.13`](https://github.com/balderdashy/sails-generate/tree/v1.16.13/lib/core-generators/new). -->
+
 
 
 

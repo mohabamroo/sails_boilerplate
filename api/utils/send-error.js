@@ -1,4 +1,4 @@
-module.exports = function(error, res) {
+module.exports = function (error, res) {
   console.error('\x1b[31m', 'ERROR: ', error.name);
   console.error(
     '\x1b[31m',

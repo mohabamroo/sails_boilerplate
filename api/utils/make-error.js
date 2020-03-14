@@ -3,7 +3,9 @@ module.exports = (code, msg, name = null, userMessage = '') => {
     ...new Error(),
     name: name || 'BadRequest',
     code: code || 500,
-    message: msg || 'Something went wrong, but we can not tell what exactly.',
+    message:
+      msg ||
+      'Something went wrong, but we can not tell what exactly.',
     userErr: true,
     userMessage
   };
