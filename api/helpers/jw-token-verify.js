@@ -16,15 +16,15 @@ module.exports = {
       description: 'Invalid token or no authentication present.'
     }
   },
-  fn: function(inputs, exits) {
+  fn: function (inputs, exits) {
     if (inputs.token) {
       // if there is something, attempt to parse it as a JWT token
       return jwt.verify(
         inputs.token,
-        sails.config.jwtSecret,
+        process.env.JWT_SECRET,
         async (err, payload) => {
           if (err || !payload.user) return exits.invalid();
-          var user = await Auth.findOne({ id: payload.user.id });
+          var user = await User.findOne({ id: payload.user.id });
           if (!user) return exits.invalid();
 
           return exits.success(user);

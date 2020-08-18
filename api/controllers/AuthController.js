@@ -5,12 +5,18 @@
  * @help        :: See https://sailsjs.com/docs/concepts/actions
  */
 const validate = require('../validation/index');
-const validation = require('../validation/auth.validation');
+const validation = require('../validation/user.validation');
 const bcrypt = require('bcryptjs');
 const sendError = require('../utils/send-error');
 const makeError = require('../utils/make-error');
-var actionUtil = require('sails/lib/hooks/blueprints/actionUtil');
+const actionUtil = require('sails/lib/hooks/blueprints/actionUtil');
 
+const generateToken = (user) => {
+  return sails.helpers.jwTokenSign(user).catch((_jwtErr) => {
+    console.error('generateToken -> _jwtErr', _jwtErr);
+    throw makeError(500, 'Could not generate token', _jwtErr.name);
+  });
+};
 module.exports = {
   _config: {
     actions: true,
@@ -20,34 +26,27 @@ module.exports = {
 
   // for customer registeration only
   register: async (req, res) => {
-    const fn = validationErr => {
+    const fn = (validationErr) => {
       if (validationErr)
         return sendError({ code: 400, ...validationErr }, res);
-      req.body['accessLevel'] = 'customer';
+      req.body['accessLevel'] = 'parent';
       const responseBody = {};
-      Auth.create(req.body.auth)
+      User.create(req.body)
         .fetch()
-        .then(user => {
-          req.body.userProfile.auth = user.id;
-          return sails.helpers.jwTokenSign(user).catch(_jwtErr => {
-            throw makeError(
-              500,
-              'Could not generate token',
-              _jwtErr.name
-            );
-          });
+        .then((user) => {
+          req.body.user = user.id;
+          return generateToken(user);
         })
-        .then(token => {
+        .then((token) => {
           responseBody['token'] = token;
-          return UserProfile.create(req.body.userProfile).fetch();
         })
-        .then(async userProfile => {
-          res.status(201).json({ ...responseBody, userProfile });
+        .then(async () => {
+          return res.status(201).json({ ...responseBody });
         })
-        .catch(async err => {
+        .catch(async (err) => {
           // removing auth created account
-          if (req.body.userProfile.auth) {
-            await Auth.destroyOne({ id: req.body.userProfile.auth });
+          if (req.body.user) {
+            await User.destroyOne({ id: req.body.user });
           }
           return sendError(
             makeError(400, err.message, err.name),
@@ -59,14 +58,14 @@ module.exports = {
   },
 
   login: async (req, res) => {
-    const fn = validationErr => {
+    const fn = (validationErr) => {
       if (validationErr)
         return sendError({ code: 400, ...validationErr }, res);
       const responseBody = {};
-      Auth.findOne({
+      User.findOne({
         email: req.body.email
       })
-        .then(user => {
+        .then((user) => {
           if (!user) {
             throw makeError(
               404,
@@ -77,10 +76,10 @@ module.exports = {
           responseBody.auth = user.toJSON();
           return bcrypt
             .compare(req.body.password, user.password)
-            .then(matched => {
+            .then((matched) => {
               console.log('TCL: matched', matched);
               if (matched) {
-                return new Promise(resolve => resolve(user));
+                return new Promise((resolve) => resolve(user));
               } else {
                 throw makeError(
                   401,
@@ -90,76 +89,43 @@ module.exports = {
               }
             });
         })
-        .then(result => {
-          return sails.helpers.jwTokenSign(result).catch(_jwtErr => {
-            throw makeError(
-              500,
-              'Could not generate token',
-              _jwtErr.name
-            );
-          });
+        .then((result) => {
+          return generateToken(result);
         })
-        .then(token => {
+        .then((token) => {
           responseBody.token = token;
-          return UserProfile.findOne({
-            auth: responseBody.auth.id
-          });
         })
-        .then(userProfile => {
+        .then((userProfile) => {
           // TODO: what if not verified?
-          res.status(200).json({ ...responseBody, userProfile });
+          return res.status(200).json({ ...responseBody });
         })
-        .catch(err => {
+        .catch((err) => {
           return sendError({ ...err }, res);
         });
     };
     validate(validation.userLogin)(req, res, fn);
   },
 
-  createAuthAccount: async (req, res) => {
-    // to creaet any type of accounts, ADMIN level
-    const fn = validationErr => {
-      if (validationErr)
-        return sendError({ code: 400, ...validationErr }, res);
-      const authAccount = req.body.auth;
-      Auth.create(authAccount)
-        .fetch()
-        .then(user => {
-          res
-            .status(201)
-            .json({ message: 'Auth account created.', auth: user });
-        })
-        // eslint-disable-next-line handle-callback-err
-        .catch(err => {
-          return sendError(
-            makeError(400, err.message, err.name),
-            res
-          );
-        });
-    };
-    validate(validation.createAuth)(req, res, fn);
-  },
-
   find: async (req, res) => {
-    var criteria = actionUtil.parseCriteria(req);
-    var dataQuery = Auth.find()
+    const criteria = actionUtil.parseCriteria(req);
+    const dataQuery = User.find()
       .where(criteria)
       .limit(actionUtil.parseLimit(req))
       .skip(actionUtil.parseSkip(req))
       .sort(actionUtil.parseSort(req))
       .populateAll();
 
-    var countQuery = Auth.count().where(criteria);
+    const countQuery = User.count().where(criteria);
 
     Promise.all([dataQuery, countQuery])
-      .then(responses => {
-        res.status(200).json({
+      .then((responses) => {
+        return res.status(200).json({
           message: 'Fetched accounts',
           data: responses[0],
           count: responses[1]
         });
       })
-      .catch(err =>
+      .catch((err) =>
         sendError(makeError(400, err.message, err.name), res)
       );
   },
@@ -168,36 +134,36 @@ module.exports = {
     const formValue = req.body;
     const id = req.params.id;
 
-    Auth.updateOne({
+    User.updateOne({
       id: id
     })
       .set(formValue)
-      .then(instance => {
-        res.status(200).json({
+      .then((instance) => {
+        return res.status(200).json({
           message: `Updated User with ID: ${instance.id}.`,
           instance
         });
       })
-      .catch(err => {
+      .catch((err) => {
         return sendError(makeError(400, err.message, err.name), res);
       });
   },
 
   destroy: async (req, res) => {
     // you cannot delete yourself.
-    Auth.destroyOne({
+    User.destroyOne({
       id: {
         '>=': req.params.id,
         '<=': req.params.id,
         '!=': req.currentUser.id
       }
     })
-      .then(authAcc => {
-        res
+      .then((authAcc) => {
+        return res
           .status(200)
           .json({ message: 'Auth account deleted.', auth: authAcc });
       })
-      .catch(err => {
+      .catch((err) => {
         return sendError(makeError(400, err.message, err.name), res);
       });
   }

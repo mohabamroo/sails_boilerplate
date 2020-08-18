@@ -12,8 +12,7 @@ a [Sails v1](https://sailsjs.com) application
 + [Professional / enterprise options](https://sailsjs.com/enterprise)
 
 ## Models
-- Auth (email, password & accessLevel)
-- Userprofile (personal data + auth_id)
+- User (email, password & accessLevel)
 
 ## Controllers
 - AuthController
