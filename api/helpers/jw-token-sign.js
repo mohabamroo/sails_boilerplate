@@ -1,4 +1,4 @@
-var jwt = require('jsonwebtoken');
+const jwt = require('jsonwebtoken');
 
 module.exports = {
   friendlyName: 'Jw token sign',
@@ -20,14 +20,14 @@ module.exports = {
     }
   },
 
-  fn: function(inputs) {
+  fn: function (inputs) {
     // TODO:
     return jwt.sign(
       {
         user: inputs.payload
       },
-      sails.config.jwtSecret,
-      { expiresIn: sails.config.jwtExpiry }
+      process.env.JWT_SECRET,
+      { expiresIn: process.env.JWT_EXPIRY }
     );
   }
 };

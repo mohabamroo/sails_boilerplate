@@ -7,7 +7,7 @@
  * For more information on configuring custom routes, check out:
  * https://sailsjs.com/anatomy/config/routes-js
  */
-const authRoutes = require('../routes/auth.routes');
+const authRoutes = require('../routes/user.routes');
 
 module.exports.routes = {
   ...authRoutes,

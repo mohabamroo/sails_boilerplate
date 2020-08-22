@@ -1,4 +1,4 @@
-const tableName = 'user_profiles';
+const tableName = 'users';
 const CONSTANTS = require('../config/constants');
 
 module.exports = {
@@ -12,6 +12,33 @@ module.exports = {
           primaryKey: true,
           type: Sequelize.INTEGER
         },
+        email: {
+          type: Sequelize.STRING,
+          unique: true,
+          allowNull: false
+        },
+        phone: {
+          type: Sequelize.STRING,
+          allowNull: true,
+          unique: true
+        },
+
+        password: {
+          type: Sequelize.STRING,
+          unique: false,
+          allowNull: false
+        },
+        verified: {
+          type: Sequelize.BOOLEAN,
+          allowNull: false,
+          defaultValue: true
+        },
+        accessLevel: {
+          type: Sequelize.ENUM({ values: CONSTANTS.rolesENUM }),
+          allowNull: false,
+          defaultValue: 'parent'
+        },
+
         firstName: {
           type: Sequelize.STRING,
           allowNull: false
@@ -20,17 +47,6 @@ module.exports = {
           type: Sequelize.STRING,
           allowNull: true
         },
-        auth_id: {
-          type: Sequelize.INTEGER,
-          allowNull: true,
-          references: {
-            model: 'auth',
-            key: 'id'
-          },
-          onUpdate: 'CASCADE',
-          onDelete: 'CASCADE'
-        },
-        phone: { type: Sequelize.STRING, allowNull: true },
         address: { type: Sequelize.STRING, allowNull: true },
         countryCode: {
           type: Sequelize.STRING
